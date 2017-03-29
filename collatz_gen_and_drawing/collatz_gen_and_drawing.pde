@@ -19,8 +19,8 @@ import java.util.ArrayList;
 
 
 ArrayList<CollatzPoint> points;
-final int HEIGHT = 20;
-int heightRemaning = 20;
+final int HEIGHT = 30;
+int heightRemaning = 30;
 
 void setup() {
   // set the size of the display
@@ -35,7 +35,7 @@ void setup() {
    */
   points = new ArrayList();
   points.add(new CollatzPoint(1, new Point(10, 10), 1, false, null));
-  ellipse(20, -20, 20, 20);
+  ellipse(20, -20, 10, 10);
 }
 
 void draw() {
@@ -51,16 +51,16 @@ public void generate(ArrayList<CollatzPoint> points, int heightRemaning) {
    * End testing
    */
 
-  System.out.println("before loop");
+  //System.out.println("before loop");
   if (heightRemaning > 0) {
-    System.out.println("in loop");
+    //System.out.println("in loop");
 
     /*
        * If we still need to continue drawing the tree
      */
 
     translate(0, 100);
-    fill(255, 0, 0);
+    fill(map(heightRemaning, 0, this.HEIGHT, 255, 0), map(heightRemaning, 0, this.HEIGHT, 0, 255), map(heightRemaning, 0, this.HEIGHT, 0, 255));
 
     ArrayList<CollatzPoint> newPoints = new ArrayList();
 
@@ -75,20 +75,39 @@ public void generate(ArrayList<CollatzPoint> points, int heightRemaning) {
       newPoints.add(newPoint);
       System.out.println(newPoint.value + " is left node: " + newPoint.isLeftNode);
 
-      ellipse((float) newPoint.position.getX(), (float) newPoint.position.getY(), 20, 20);
+      // TESTING
+      strokeWeight(10);
+      stroke(map(heightRemaning, 0, this.HEIGHT, 255, 0), map(heightRemaning, 0, this.HEIGHT, 0, 255), map(heightRemaning, 0, this.HEIGHT, 0, 255));
+      line((float) val.position.getX(), (float) val.position.getY(), (float) newPoint.position.getX(), (float) newPoint.position.getY());
+      noStroke();
+      ellipse((float) newPoint.position.getX(), (float) newPoint.position.getY(), 10, 10);
 
       /*
      * See if there is an odd branch
        */
-      float possiblePoint = (float) (((float) val.value - 1.0) / 3.0);
+      float possiblePoint = (val.value - 1.0) / 3.0;
+      //if (((int) val.value-1) % 3 == 0) {
+      //  ///
+      //  System.out.println("!!!!!!!!!!!!!I JUST SUCEEDED " + "Value is: "+
+      //  val.value);
+      //}
 
-      if (possiblePoint == (int) possiblePoint && (int) possiblePoint != 0 && (int) possiblePoint != 1) {
+      if ((possiblePoint % 1.0 == 0.0) && possiblePoint != 0.0 && possiblePoint != 1.0) {
         newPoint = new CollatzPoint((int) possiblePoint, generateNewPoint(val.position, false), 10, false, 
           val);
         newPoints.add(newPoint);
 
-        ellipse((float) newPoint.position.getX(), (float) newPoint.position.getY(), 20, 20);
+        // TESTING
+        strokeWeight(10);
+        stroke(map(heightRemaning, 0, this.HEIGHT, 255, 0), map(heightRemaning, 0, this.HEIGHT, 0, 255), map(heightRemaning, 0, this.HEIGHT, 0, 255));
+        line((float) val.position.getX(), (float) val.position.getY(), (float) newPoint.position.getX(), (float) newPoint.position.getY());
+        noStroke();
+        ellipse((float) newPoint.position.getX(), (float) newPoint.position.getY(), 10, 10);
         System.out.println(newPoint.value + " is left node: " + newPoint.isLeftNode);
+        
+        System.out.println("!!!!!!!!!!!!!I JUST SUCEEDED " + "Value is: " + possiblePoint);
+      } else {
+        System.out.println("!!!!!!!!!!!!!I JUST FAILED " + "Value is: " + possiblePoint);
       }
     }
 
@@ -107,10 +126,10 @@ public void generate(ArrayList<CollatzPoint> points, int heightRemaning) {
     // generate(newPoints, --heightRemaning);
     // }
 
-    System.out.println("leaving loop");
+    //System.out.println("leaving loop");
   }
 
-  System.out.println("left loop");
+  //System.out.println("left loop");
 }
 
 public Point generateNewPoint(Point parent, Boolean isLeftNode) {
