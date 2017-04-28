@@ -1,170 +1,296 @@
-import java.awt.Point;
-import java.util.ArrayList;
-
-/*
- * NOTE : I am afraid of draw() being executed in a locked
- * speed thread that will even be called before the painting
- * of all the points has been compleated, and ArrayList<> is
- * not thread safe.
- */
- 
-/*
- * TODO : we have to decide on where the origin node will be.
- * If it is the botton left corner it makes it hard on us because
- * we have to shift our math to accomidate it. Up is negative, right
- * is positive. Where is our orgin for 'theta', is it negative 'y-axis'
- * or is it the positive 'x-axis' like the 'basicDrawCirle' has it
- * implemented.
- */
-
-
-ArrayList<CollatzPoint> points;
-final int HEIGHT = 30;
-int heightRemaning = 30;
-
-void setup() {
-  // set the size of the display
-  size(1280, 720);
-  // lock hte framerate, which will determine how fast the tree grows
-  frameRate(10);
-  // set the origin of the scetch to be the botton right side
-  translate(0, 100);
-
+  import java.awt.Point;
+  import java.util.ArrayList;
+  
   /*
-   * set the initial point to 1, that we will later branch up
-   */
-  points = new ArrayList();
-  points.add(new CollatzPoint(1, new Point(10, 10), 1, false, null));
-  ellipse(20, -20, 10, 10);
-}
-
-void draw() {
-  generate(points, heightRemaning);
-}
-
-public void generate(ArrayList<CollatzPoint> points, int heightRemaning) {
-  /*
-   * Testing
+   * NOTE : I am afraid of draw() being executed in a locked speed thread that
+   * will even be called before the painting of all the points has been
+   * compleated, and ArrayList<> is not thread safe.
    */
 
   /*
-   * End testing
+   * TODO : we have to decide on where the origin node will be. If it is the
+   * botton left corner it makes it hard on us because we have to shift our
+   * math to accomidate it. Up is negative, right is positive. Where is our
+   * orgin for 'theta', is it negative 'y-axis' or is it the positive 'x-axis'
+   * like the 'basicDrawCirle' has it implemented.
    */
 
-  //System.out.println("before loop");
-  if (heightRemaning > 0) {
-    //System.out.println("in loop");
+  ////// NEW TESTING
+  public final static int MIN_ALPHA = 0;
+  public  final static int MAX_ALPHA = 360;
+  public HScrollbar hs1;
+  public boolean startDrawing;
+  ////// END NEW TESTING
+
+  ArrayList<CollatzPoint> points;
+  public final int HEIGHT = 30;
+  public int heightRemaning = 25;
+  public int alpha = 20;
+  public int mag = 30;
+  public int size = 3;
+
+  public void setup() {
+    // set the size of the display
+    size(1280, 720);
+    // lock hte framerate, which will determine how fast the tree grows
+    frameRate(2);
+
+    ////// NEW TESTING
+    hs1 = new HScrollbar(0, 8, width, 16, 1);
+    ////// END NEW TESTING
+
+    // set the origin of the sketch to be the botton right side
+    translate(600, 400);
 
     /*
-       * If we still need to continue drawing the tree
+     * set the initial point to 1, that we will later branch up
+     */
+    points = new ArrayList();
+    points.add(new CollatzPoint(1, new Point(10, 10), 0, false, null));
+    ellipse(10, 10, size, size);
+  }
+
+  // TODO make the tree only grow when the button is pressed
+
+  public void mousePressed() {
+    // the mouse has to be bellow the slider clusters
+    if (mouseY > 20) {
+
+      // reset the whole shebang
+      // points = new ArrayList();
+      // points.add(new CollatzPoint(1, new Point(10, 10), 0, false,
+      // null));
+      // ellipse(10, 10, size, size);
+
+      alpha = hs1.getAlpha();
+      startDrawing = true;
+      System.out.println("I AM GOING TO DRAW NOW!!!!!");
+    }
+  }
+
+  public void draw() {
+    hs1.update();
+    hs1.display();
+
+    if (startDrawing) {
+      // System.out.println("we would begin printing here");
+      generate(points, heightRemaning);
+    } else {
+      // System.out.println("slider position has not been selected");
+    }
+  }
+
+  /*
+   * Draw one new node
+   */
+  void drawCircle(CollatzPoint parentPoint, CollatzPoint currPoint) {
+
+    strokeWeight(size + 2);
+    stroke(255, 255, 255);
+    line(parentPoint.getX(), parentPoint.getY(), currPoint.getX(), currPoint.getY());
+
+    strokeWeight(size);
+    stroke(map(heightRemaning, 0, this.HEIGHT, 255, 0), map(heightRemaning, 0, this.HEIGHT, 0, 255),
+        map(heightRemaning, 0, this.HEIGHT, 0, 255));
+    line(parentPoint.getX(), parentPoint.getY(), currPoint.getX(), currPoint.getY());
+    noStroke();
+    fill(map(heightRemaning, 0, this.HEIGHT, 255, 0), map(heightRemaning, 0, this.HEIGHT, 0, 255),
+        map(heightRemaning, 0, this.HEIGHT, 0, 255));
+    ellipse(currPoint.getX(), currPoint.getY(), size, size);
+  }
+
+  public void generate(ArrayList<CollatzPoint> points, int heightRemaning) {
+    /*
+     * Testing
      */
 
-    translate(0, 100);
-    fill(map(heightRemaning, 0, this.HEIGHT, 255, 0), map(heightRemaning, 0, this.HEIGHT, 0, 255), map(heightRemaning, 0, this.HEIGHT, 0, 255));
+    /*
+     * End testing
+     */
 
-    ArrayList<CollatzPoint> newPoints = new ArrayList();
-
-    for (CollatzPoint val : points) {
-      /*
-     * There is always going to be an even branch
-       */
-
-      // add the even point
-      CollatzPoint newPoint = new CollatzPoint(val.value * 2, generateNewPoint(val.position, true), 10, true, 
-        val);
-      newPoints.add(newPoint);
-      System.out.println(newPoint.value + " is left node: " + newPoint.isLeftNode);
-
-      // TESTING
-      strokeWeight(10);
-      stroke(map(heightRemaning, 0, this.HEIGHT, 255, 0), map(heightRemaning, 0, this.HEIGHT, 0, 255), map(heightRemaning, 0, this.HEIGHT, 0, 255));
-      line((float) val.position.getX(), (float) val.position.getY(), (float) newPoint.position.getX(), (float) newPoint.position.getY());
-      noStroke();
-      ellipse((float) newPoint.position.getX(), (float) newPoint.position.getY(), 10, 10);
+    if (heightRemaning > 0) {
 
       /*
-     * See if there is an odd branch
+       * If we still need to continue drawing the tree
        */
-      float possiblePoint = (val.value - 1.0) / 3.0;
-      //if (((int) val.value-1) % 3 == 0) {
-      //  ///
-      //  System.out.println("!!!!!!!!!!!!!I JUST SUCEEDED " + "Value is: "+
-      //  val.value);
-      //}
 
-      if ((possiblePoint % 1.0 == 0.0) && possiblePoint != 0.0 && possiblePoint != 1.0) {
-        newPoint = new CollatzPoint((int) possiblePoint, generateNewPoint(val.position, false), 10, false, 
-          val);
+      translate(600, 400);
+      fill(255, 0, 0);
+
+      ArrayList<CollatzPoint> newPoints = new ArrayList();
+
+      for (CollatzPoint val : points) {
+        /*
+         * There is always going to be an even branch
+         */
+
+        // add the even point
+        CollatzPoint newPoint = generateNewCollatzPoint(val, true, val.value * 2);
         newPoints.add(newPoint);
-
-        // TESTING
-        strokeWeight(10);
-        stroke(map(heightRemaning, 0, this.HEIGHT, 255, 0), map(heightRemaning, 0, this.HEIGHT, 0, 255), map(heightRemaning, 0, this.HEIGHT, 0, 255));
-        line((float) val.position.getX(), (float) val.position.getY(), (float) newPoint.position.getX(), (float) newPoint.position.getY());
-        noStroke();
-        ellipse((float) newPoint.position.getX(), (float) newPoint.position.getY(), 10, 10);
         System.out.println(newPoint.value + " is left node: " + newPoint.isLeftNode);
-        
-        System.out.println("!!!!!!!!!!!!!I JUST SUCEEDED " + "Value is: " + possiblePoint);
+
+        drawCircle(val, newPoint);
+
+        /*
+         * See if there is an odd branch
+         */
+        float possiblePoint = (float) (((float) val.value - 1.0) / 3.0);
+
+        if (possiblePoint == (int) possiblePoint && (int) possiblePoint != 0 && (int) possiblePoint != 1) {
+          newPoint = generateNewCollatzPoint(val, false, (int) possiblePoint);
+          newPoints.add(newPoint);
+          drawCircle(val, newPoint);
+
+          System.out.println(newPoint.value + " is left node: " + newPoint.isLeftNode);
+        }
+      }
+
+      /*
+       * Because we are going to call this function every time we repaint
+       * we do not want it to be recursive in nature
+       */
+
+      this.points = newPoints;
+      --this.heightRemaning;
+
+      System.out.println("heightRemaning: " + heightRemaning);
+      System.out.println("leaving loop");
+    }
+  }
+
+  /*
+   * Generate a new collatz point
+   */
+
+  public CollatzPoint generateNewCollatzPoint(CollatzPoint parentPoint, Boolean isLeftNode, int value) {
+    float newTheta = 0;
+    if (isLeftNode) {
+      newTheta = (float) (parentPoint.theta + alpha);
+    } else {
+      newTheta = (float) (parentPoint.theta - alpha);
+    }
+
+    double newX = parentPoint.position.getX() + mag * cos(radians(newTheta));
+    double newY = parentPoint.position.getY() + mag * sin(radians(newTheta));
+
+    return new CollatzPoint(value, new Point((int) newX, (int) newY), (int) newTheta, true, parentPoint);
+  }
+
+  /*
+   * Node class that contains all the information about a collatz point
+   */
+
+  public class CollatzPoint {
+    public CollatzPoint parent;
+
+    public int value;
+    public Point position;
+    public int theta;
+    // if 'isLeftNode' == 'true' that means it is an even number and should
+    // curve down
+    public boolean isLeftNode;
+
+    public CollatzPoint(int value, Point position, int theta, boolean isLeftNode, CollatzPoint parent) {
+      this.value = value;
+      this.position = position;
+      this.theta = theta;
+      this.isLeftNode = isLeftNode;
+
+      this.parent = parent;
+    }
+
+    public float getX() {
+      return (float) position.getX();
+    }
+
+    public float getY() {
+      return (float) position.getY();
+    }
+  }
+
+  class HScrollbar {
+    int swidth, sheight; // width and height of bar
+    float xpos, ypos; // x and y position of bar
+    float spos, newspos; // x position of slider
+    float sposMin, sposMax; // max and min values of slider
+    int loose; // how loose/heavy, 1 : follows mouse exactly, higher means
+          // it is slower
+    boolean over; // is the mouse over the slider?
+    boolean locked;
+    float ratio;
+
+    HScrollbar(float xp, float yp, int sw, int sh, int l) {
+      swidth = sw;
+      sheight = sh;
+      int widthtoheight = sw - sh;
+      ratio = (float) sw / (float) widthtoheight;
+      xpos = xp;
+      ypos = yp - sheight / 2;
+      spos = xpos + swidth / 2 - sheight / 2;
+      newspos = spos;
+      sposMin = xpos;
+      sposMax = xpos + swidth - sheight;
+      loose = l;
+    }
+
+    void update() {
+
+      // System.out.println("I AM IN UPDATE");
+
+      if (overEvent()) {
+        over = true;
       } else {
-        System.out.println("!!!!!!!!!!!!!I JUST FAILED " + "Value is: " + possiblePoint);
+        over = false;
+      }
+      if (mousePressed && over) {
+        // System.out.println("mousePressed && over");
+        locked = true;
+      }
+      if (!mousePressed) {
+        // System.out.println("!mousePressed");
+        locked = false;
+      }
+      if (locked) {
+        System.out.println("locked");
+        newspos = constrain(mouseX - sheight / 2, sposMin, sposMax);
+      }
+      if (abs(newspos - spos) > 1) {
+        spos = spos + (newspos - spos) / loose;
       }
     }
 
-    /*
-     * Because we are going to call this function every time we repaint
-     * we do not want it to be recursive in nature
-     */
+    float constrain(float val, float minv, float maxv) {
+      return min(max(val, minv), maxv);
+    }
 
-    this.points = newPoints;
-    --this.heightRemaning;
+    boolean overEvent() {
+      if (mouseX > xpos && mouseX < xpos + swidth && mouseY > ypos && mouseY < ypos + sheight) {
+        return true;
+      } else {
+        return false;
+      }
+    }
 
-    System.out.println("heightRemaning: " + heightRemaning);
+    void display() {
+      noStroke();
+      fill(204);
+      rect(xpos, ypos, swidth, sheight);
+      if (over || locked) {
+        fill(0, 0, 0);
+      } else {
+        fill(102, 102, 102);
+      }
+      rect(spos, ypos, sheight, sheight);
+    }
 
-    // if (heightRemaning > 0) {
-    // // System.out.println("heightRemaning: " + heightRemaning);
-    // generate(newPoints, --heightRemaning);
-    // }
+    int getAlpha() {
+      // Convert spos to be values between
+      // 0 and the total width of the scrollbar
 
-    //System.out.println("leaving loop");
+      System.out.println("Pos: " + spos * ratio);
+
+      int value = (int) (spos * ratio);
+
+      return (int) map(value, 0, width, MIN_ALPHA, MAX_ALPHA);
+    }
   }
-
-  //System.out.println("left loop");
-}
-
-public Point generateNewPoint(Point parent, Boolean isLeftNode) {
-  if (isLeftNode) {
-    System.out.println("parent.getX() + 20: " + (parent.getX() + 20));
-    System.out.println("parent.getY() + 20: " + (parent.getY() + 20));
-    // TODO curve down
-    return new Point((int) (parent.getX() + 20), (int) (parent.getY() + 20));
-  } else {
-    System.out.println("parent.getX() + 20: " + (parent.getX() + 20));
-    System.out.println("parent.getY() - 20: " + (parent.getY() - 20));
-    // TODO curve up
-    return new Point((int) (parent.getX() + 20), (int) (parent.getY() - 20));
-  }
-}
-
-/*
-     * Node class that contains all the information about a point
- */
-
-public class CollatzPoint {
-  public CollatzPoint parent;
-
-  public int value;
-  public Point position;
-  public double theta;
-  // if 'isLeftNode' == 'true' that means it is an even number and should curve down 
-  public boolean isLeftNode;
-
-  public CollatzPoint(int value, Point position, double theta, boolean isLeftNode, CollatzPoint parrent) {
-    this.value = value;
-    this.position = position;
-    this.theta = theta;
-    this.isLeftNode = isLeftNode;
-
-    this.parent = parent;
-  }
-}
